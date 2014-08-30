@@ -1,0 +1,32 @@
+﻿body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #252525;
+    color: #A0A0A0;
+}
+
+#container {
+    width: 500px;
+    margin: 50px auto 0 auto;
+}
+
+#sandbox {
+    width: 500px;
+    height: 500px;
+    position: relative;
+    background: #3C3C3C;
+}
+
+.limb {
+    width: 10px;
+    height: 10px;
+    background: #17D8AA;
+    position: absolute;
+}
+
+.prey {
+    width: 10px;
+    height: 10px;
+    background: #fff;
+    position: absolute;
+    border-radius: 6px;
+}

@@ -1,4 +1,14 @@
-﻿_.templateSettings = {
+﻿/// TODO
+/// Le serpent ne doit pas se mordre la queue
+/// Une proie ne doit pas être générée sur le serpent
+/// Classement par niveau
+/// Coefficient de vitesse
+/// Affichage d'un bouton retry
+/// Niveau de difficulté
+/// Un niveau donne accès à un nouveau monde (carte à thème)
+/// Correction du bug de direction
+/// Bug d'ecran ou de coordonnées en Y
+_.templateSettings = {
     interpolate: /\{(.+?)\}/g
 };
 
@@ -25,6 +35,10 @@ var Snake = (function () {
         this.direction = 3 /* Right */;
         this.defineOrientation = function (event) {
             var direction;
+
+            if (_this.isGameOver) {
+                return;
+            }
 
             switch (event.which) {
                 case 37:
@@ -59,6 +73,8 @@ var Snake = (function () {
                     _this.direction = 4 /* Bottom */;
                 }
             }
+
+            _this.moveLimb();
         };
         this.createSnake = function () {
             var currentLeft = _this.leftDefault;
@@ -138,6 +154,36 @@ var Snake = (function () {
         this.LimbCatchPrey = function (moveLimbCoordinate) {
             return moveLimbCoordinate.left == _this.prey.left && moveLimbCoordinate.top == _this.prey.top;
         };
+        this.buildLevel = function () {
+            _this.catchedPreys++;
+            if (_this.catchedPreys === 5) {
+                _this.catchedPreys = 0;
+                _this.level++;
+                $('#value-level').text(_this.level);
+
+                if (_this.level == _this.maxLevel) {
+                    _this.stop();
+                    alert('Bravo vous avez atteint le niveau maximum !');
+                    return;
+                }
+
+                _this.speed = _this.speed - _this.speedDecrement;
+                _this.stop();
+                _this.start();
+            }
+        };
+        this.isGameOver = false;
+        this.minSpeed = 40;
+        this.maxSpeed = 15;
+        this.speed = this.minSpeed;
+        this.speedDelta = this.minSpeed - this.maxSpeed;
+        this.speedDecrement = 1;
+        this.preysPerLevel = 5;
+        this.maxLevel = this.speedDelta / this.speedDecrement;
+        this.catchedPreys = 0;
+        this.level = 1;
+        $('#value-level').text(this.level);
+
         this.snakeWidth = 10;
         this.moveLimbCurrentIndex = 0;
         this.limbNumber = 5;
@@ -165,13 +211,16 @@ var Snake = (function () {
         moveLimbCoordinate = this.getLimbPosition(firstLimb);
 
         if (this.limbIsOutside(moveLimbCoordinate)) {
-            return this.stop();
+            this.stop();
+            this.isGameOver = true;
+            return alert('Game Over ;-(');
         }
 
         if (this.LimbCatchPrey(moveLimbCoordinate)) {
             this.prey.element.remove();
             this.createPrey();
             this.createLimb(moveLimbCoordinate);
+            this.buildLevel();
         }
 
         moveLimb.element.css({ left: moveLimbCoordinate.left, top: moveLimbCoordinate.top });
@@ -190,7 +239,7 @@ var Snake = (function () {
         var _this = this;
         this.timerToken = setInterval(function () {
             _this.moveLimb();
-        }, 30);
+        }, this.speed);
     };
 
     Snake.prototype.stop = function () {

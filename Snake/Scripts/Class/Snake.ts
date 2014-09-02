@@ -1,4 +1,15 @@
-﻿_.templateSettings = {
+﻿/// TODO
+/// Le serpent ne doit pas se mordre la queue
+/// Une proie ne doit pas être générée sur le serpent
+/// Classement par niveau
+/// Coefficient de vitesse
+/// Affichage d'un bouton retry
+/// Niveau de difficulté
+/// Un niveau donne accès à un nouveau monde (carte à thème)
+/// Correction du bug de direction
+/// Bug d'ecran ou de coordonnées en Y
+
+_.templateSettings = {
     interpolate: /\{(.+?)\}/g
 };
 
@@ -32,6 +43,18 @@ class Snake {
     private sandboxTopBorder: number;
     private sandboxRightBorder: number;
     private sandboxBottomBorder: number;
+
+    private level: number;
+    private maxLevel: number;
+    private speed: number;
+    private speedDecrement: number;
+    private minSpeed: number;
+    private maxSpeed: number;
+    private speedDelta: number;
+    private catchedPreys: number;
+    private preysPerLevel: number;
+    private isGameOver: boolean;
+
     private sandbox: JQuery;
     private limbs: Limb[];
     private orientation: Orientation = Orientation.Horizontal;
@@ -39,6 +62,18 @@ class Snake {
     private prey: Prey;
 
     constructor() {
+        this.isGameOver = false;
+        this.minSpeed = 40;
+        this.maxSpeed = 15;
+        this.speed = this.minSpeed;
+        this.speedDelta = this.minSpeed - this.maxSpeed;
+        this.speedDecrement = 1;
+        this.preysPerLevel = 5;
+        this.maxLevel = this.speedDelta / this.speedDecrement;
+        this.catchedPreys = 0;
+        this.level = 1;
+        $('#value-level').text(this.level);
+
         this.snakeWidth = 10;
         this.moveLimbCurrentIndex = 0;
         this.limbNumber = 5;
@@ -57,6 +92,10 @@ class Snake {
 
     private defineOrientation = (event: JQueryEventObject): void => {
         var direction: Direction;
+
+        if (this.isGameOver) {
+            return;
+        }
 
         switch (event.which) {
             case 37:
@@ -91,6 +130,8 @@ class Snake {
                 this.direction = Direction.Bottom;
             }
         }
+
+        this.moveLimb();
     }
 
     private createSnake = () => {
@@ -189,13 +230,16 @@ class Snake {
         moveLimbCoordinate = this.getLimbPosition(firstLimb);
 
         if (this.limbIsOutside(moveLimbCoordinate)) {
-            return this.stop();
+            this.stop();
+            this.isGameOver = true;
+            return alert('Game Over ;-(');
         }
 
         if (this.LimbCatchPrey(moveLimbCoordinate)) {
             this.prey.element.remove();
             this.createPrey();
             this.createLimb(moveLimbCoordinate);
+            this.buildLevel();
         }
 
         moveLimb.element.css({ left: moveLimbCoordinate.left, top: moveLimbCoordinate.top });
@@ -210,10 +254,29 @@ class Snake {
         }
     }
 
+    private buildLevel = () => {
+        this.catchedPreys++;
+        if (this.catchedPreys === 5) {
+            this.catchedPreys = 0;
+            this.level++;
+            $('#value-level').text(this.level);
+
+            if (this.level == this.maxLevel) {
+                this.stop();
+                alert('Bravo vous avez atteint le niveau maximum !');
+                return;
+            }
+
+            this.speed = this.speed - this.speedDecrement;
+            this.stop();
+            this.start();
+        }
+    }
+
     public start() {
         this.timerToken = setInterval(() => {
             this.moveLimb();
-        }, 30);
+        }, this.speed);
     }
 
     public stop() {

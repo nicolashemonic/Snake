@@ -1,0 +1,1 @@
+﻿//# sourceMappingURL=ICoordinate.js.map

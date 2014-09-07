@@ -30,8 +30,11 @@
     <TypeScriptCompile Include="Scripts\Class\Limb.ts" />
     <TypeScriptCompile Include="Scripts\Class\Prey.ts" />
     <TypeScriptCompile Include="Scripts\Class\Snake.ts" />
-    <TypeScriptCompile Include="Scripts\typings\underscore\underscore.d.ts" />
-    <TypeScriptCompile Include="Scripts\typings\jquery\jquery.d.ts" />
+    <TypeScriptCompile Include="Scripts\Enum\Direction.ts" />
+    <TypeScriptCompile Include="Scripts\Enum\Orientation.ts" />
+    <TypeScriptCompile Include="Scripts\Interfaces\ICoordinate.ts" />
+    <TypeScriptCompile Include="Scripts\Typings\underscore\underscore.d.ts" />
+    <TypeScriptCompile Include="Scripts\Typings\jquery\jquery.d.ts" />
     <TypeScriptCompile Include="Scripts\ViewModel\Index.ts" />
   </ItemGroup>
   <ItemGroup>
@@ -43,6 +46,7 @@
       <DependentUpon>web.config</DependentUpon>
     </None>
   </ItemGroup>
+  <ItemGroup />
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>

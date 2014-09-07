@@ -1,96 +1,51 @@
-﻿/// TODO
-/// Le serpent ne doit pas se mordre la queue
-/// Une proie ne doit pas être générée sur le serpent
-/// Classement par niveau
-/// Coefficient de vitesse
-/// Affichage d'un bouton retry
-/// Niveau de difficulté
-/// Un niveau donne accès à un nouveau monde (carte à thème)
-/// Correction du bug de direction
-/// Bug d'ecran ou de coordonnées en Y
+﻿class Snake {
 
-_.templateSettings = {
-    interpolate: /\{(.+?)\}/g
-};
+    //#region properties
 
-enum Orientation {
-    None,
-    Horizontal,
-    Vertical
-}
+    // constant values
+    private defaultTopPosition: number = 250;
+    private defaultLeftPosition: number = 0;
+    private defaultLimbNumber: number = 5;
+    private minSpeed: number = 40;
+    private maxSpeed: number = 15;
+    private speedDecrement: number = 1;
+    private preysPerLevel: number = 5;
+    private sandboxLeftBorderPosition: number = 0;
+    private sandboxTopBorderPosition: number = 0;
+    private sandboxRightBorderPosition: number = 500;
+    private sandboxBottomBorderPosition: number = 500;
+    private sandbox: JQuery = $("#sandbox");
+    private maxLevel: number = (this.minSpeed - this.maxSpeed) / this.speedDecrement;
 
-enum Direction {
-    None,
-    Left,
-    Top,
-    Right,
-    Bottom
-}
-
-interface ICoordinate {
-    left: number;
-    top: number;
-}
-
-class Snake {
+    // current values
+    private speed: number = this.minSpeed;
+    private isGameOver: boolean = false;
+    private catchedPreys: number = 0;
+    private level: number = 1;
+    private moveLimbCurrentIndex: number = 0;
+    private limbs: Limb[] = [];
     private timerToken: number;
-    private snakeWidth: number;
-    private moveLimbCurrentIndex: number;
-    private limbNumber: number;
-    private topDefault: number;
-    private leftDefault: number;
-    private sandboxLeftBorder: number;
-    private sandboxTopBorder: number;
-    private sandboxRightBorder: number;
-    private sandboxBottomBorder: number;
-
-    private level: number;
-    private maxLevel: number;
-    private speed: number;
-    private speedDecrement: number;
-    private minSpeed: number;
-    private maxSpeed: number;
-    private speedDelta: number;
-    private catchedPreys: number;
-    private preysPerLevel: number;
-    private isGameOver: boolean;
-
-    private sandbox: JQuery;
-    private limbs: Limb[];
     private orientation: Orientation = Orientation.Horizontal;
     private direction: Direction = Direction.Right;
     private prey: Prey;
 
-    constructor() {
-        this.isGameOver = false;
-        this.minSpeed = 40;
-        this.maxSpeed = 15;
-        this.speed = this.minSpeed;
-        this.speedDelta = this.minSpeed - this.maxSpeed;
-        this.speedDecrement = 1;
-        this.preysPerLevel = 5;
-        this.maxLevel = this.speedDelta / this.speedDecrement;
-        this.catchedPreys = 0;
-        this.level = 1;
-        $('#value-level').text(this.level);
+    //#endregion
 
-        this.snakeWidth = 10;
-        this.moveLimbCurrentIndex = 0;
-        this.limbNumber = 5;
-        this.topDefault = 250;
-        this.leftDefault = 0;
-        this.sandboxLeftBorder = 0;
-        this.sandboxTopBorder = 0;
-        this.sandboxRightBorder = 500;
-        this.sandboxBottomBorder = 500;
-        this.sandbox = $("#sandbox");
-        this.limbs = [];
+    //#region constructor
+
+    constructor() {
         this.createSnake();
         this.createPrey();
-        $(document).keydown(this.defineOrientation);
+
+        $('#value-level').text(this.level);
+        $(document).keydown(this.keydownHandler);
     }
 
-    private defineOrientation = (event: JQueryEventObject): void => {
+    //#endregion
+
+    //#region keydownHandler
+
+    private keydownHandler = (event: JQueryEventObject): void => {
         var direction: Direction;
 
         if (this.isGameOver) {
@@ -112,6 +67,15 @@ class Snake {
                 break;
         }
 
+        this.defineOrientationDirection(direction);
+        this.moveLimb();
+    }
+
+    //#endregion
+
+    //#region defineOrientation
+
+    private defineOrientationDirection = (direction: Direction): void => {
         if (this.orientation == Orientation.Vertical && (direction == Direction.Left || direction == Direction.Right)) {
             this.orientation = Orientation.Horizontal;
             if (direction == Direction.Left) {
@@ -130,27 +94,33 @@ class Snake {
                 this.direction = Direction.Bottom;
             }
         }
-
-        this.moveLimb();
     }
 
+    //#endregion
+
+    //#region createSnake
+
     private createSnake = () => {
-        var currentLeft: number = this.leftDefault;
+        var currentLeft: number = this.defaultLeftPosition;
         var currentLimb: Limb;
         var limbTemplate: string;
 
-        for (var i = 0; i <= this.limbNumber; i++) {
+        for (var i = 0; i <= this.defaultLimbNumber; i++) {
             currentLimb = new Limb();
             currentLeft = currentLimb.width + currentLeft;
-            limbTemplate = _.template('<div id="current-limb" class="limb" style="top: { top }px; left: { left }px;"></div>', { top: this.topDefault, left: currentLeft }).toString();
+            limbTemplate = _.template('<div id="limb" class="limb" style="top: { top }px; left: { left }px;"></div>',
+                { top: this.defaultTopPosition, left: currentLeft }).toString();
             this.sandbox.append(limbTemplate);
-
-            currentLimb.element = this.sandbox.find("#current-limb");
+            currentLimb.element = this.sandbox.find("#limb");
             currentLimb.element.removeAttr("id");
-            currentLimb.isFirst = i === this.limbNumber;
+            currentLimb.isFirst = i === this.defaultLimbNumber;
             this.limbs.push(currentLimb);
         }
     }
+
+    //#endregion
+
+    //#region createLimb
 
     private createLimb = (coordinate: ICoordinate) => {
         var limbTemplate: string;
@@ -158,12 +128,17 @@ class Snake {
 
         limb.left = coordinate.left;
         limb.top = coordinate.top;
-        limbTemplate = _.template('<div id="current-limb" class="limb" style="top: { top }px; left: { left }px;"></div>', { top: limb.top, left: limb.left }).toString();
+        limbTemplate = _.template('<div id="limb" class="limb" style="top: { top }px; left: { left }px;"></div>',
+            { top: limb.top, left: limb.left }).toString();
         this.sandbox.append(limbTemplate);
-        limb.element = this.sandbox.find("#current-limb");
+        limb.element = this.sandbox.find("#limb");
         limb.element.removeAttr("id");
         this.limbs.push(limb);
     }
+
+    //#endregion
+
+    //#region createPrey
 
     private createPrey = () => {
         var preyTemplate: string;
@@ -171,12 +146,17 @@ class Snake {
 
         prey.left = Math.round(_.random(20, 470) / 10) * 10;
         prey.top = Math.round(_.random(20, 470) / 10) * 10;
-        preyTemplate = _.template('<div id="current-prey" class="prey" style="top: { top }px; left: { left }px;"></div>', { top: prey.top, left: prey.left }).toString();
+        preyTemplate = _.template('<div id="prey" class="prey" style="top: { top }px; left: { left }px;"></div>',
+            { top: prey.top, left: prey.left }).toString();
         this.sandbox.append(preyTemplate);
-        prey.element = this.sandbox.find("#current-prey");
+        prey.element = this.sandbox.find("#prey");
         prey.element.removeAttr("id");
         this.prey = prey;
     }
+
+    //#endregion
+
+    //#region getLimbPosition
 
     private getLimbPosition = (firstLimb: Limb): ICoordinate => {
         var left: number = 0;
@@ -210,13 +190,28 @@ class Snake {
         }
     }
 
+    //#endregion
+
+    //#region limbIsOutside
+
     private limbIsOutside = (moveLimbCoordinate: ICoordinate): boolean => {
-        return moveLimbCoordinate.left < this.sandboxLeftBorder || moveLimbCoordinate.left >= this.sandboxRightBorder || moveLimbCoordinate.top < this.sandboxTopBorder || moveLimbCoordinate.top >= this.sandboxBottomBorder;
+        return moveLimbCoordinate.left < this.sandboxLeftBorderPosition ||
+            moveLimbCoordinate.left >= this.sandboxRightBorderPosition ||
+            moveLimbCoordinate.top < this.sandboxTopBorderPosition ||
+            moveLimbCoordinate.top >= this.sandboxBottomBorderPosition;
     }
 
-    private LimbCatchPrey = (moveLimbCoordinate: ICoordinate): boolean => {
+    //#endregion
+
+    //#region limbCatchPrey
+
+    private limbCatchPrey = (moveLimbCoordinate: ICoordinate): boolean => {
         return moveLimbCoordinate.left == this.prey.left && moveLimbCoordinate.top == this.prey.top;
     }
+
+    //#endregion
+
+    //#region moveLimb
 
     private moveLimb() {        
         var firstLimb: Limb;
@@ -232,10 +227,10 @@ class Snake {
         if (this.limbIsOutside(moveLimbCoordinate)) {
             this.stop();
             this.isGameOver = true;
-            return alert('Game Over ;-(');
+            return;
         }
 
-        if (this.LimbCatchPrey(moveLimbCoordinate)) {
+        if (this.limbCatchPrey(moveLimbCoordinate)) {
             this.prey.element.remove();
             this.createPrey();
             this.createLimb(moveLimbCoordinate);
@@ -254,9 +249,13 @@ class Snake {
         }
     }
 
+    //#endregion
+
+    //#region buildLevel
+
     private buildLevel = () => {
         this.catchedPreys++;
-        if (this.catchedPreys === 5) {
+        if (this.catchedPreys === this.preysPerLevel) {
             this.catchedPreys = 0;
             this.level++;
             $('#value-level').text(this.level);
@@ -273,14 +272,24 @@ class Snake {
         }
     }
 
+    //#endregion
+
+    //#region start
+
     public start() {
         this.timerToken = setInterval(() => {
             this.moveLimb();
         }, this.speed);
     }
 
+    //#endregion
+
+    //#region stop
+
     public stop() {
         clearTimeout(this.timerToken);
     }
+
+    //#endregion
 
 }

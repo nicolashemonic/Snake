@@ -1,39 +1,35 @@
-﻿/// TODO
-/// Le serpent ne doit pas se mordre la queue
-/// Une proie ne doit pas être générée sur le serpent
-/// Classement par niveau
-/// Coefficient de vitesse
-/// Affichage d'un bouton retry
-/// Niveau de difficulté
-/// Un niveau donne accès à un nouveau monde (carte à thème)
-/// Correction du bug de direction
-/// Bug d'ecran ou de coordonnées en Y
-_.templateSettings = {
-    interpolate: /\{(.+?)\}/g
-};
-
-var Orientation;
-(function (Orientation) {
-    Orientation[Orientation["None"] = 0] = "None";
-    Orientation[Orientation["Horizontal"] = 1] = "Horizontal";
-    Orientation[Orientation["Vertical"] = 2] = "Vertical";
-})(Orientation || (Orientation = {}));
-
-var Direction;
-(function (Direction) {
-    Direction[Direction["None"] = 0] = "None";
-    Direction[Direction["Left"] = 1] = "Left";
-    Direction[Direction["Top"] = 2] = "Top";
-    Direction[Direction["Right"] = 3] = "Right";
-    Direction[Direction["Bottom"] = 4] = "Bottom";
-})(Direction || (Direction = {}));
-
-var Snake = (function () {
+﻿var Snake = (function () {
+    //#endregion
+    //#region constructor
     function Snake() {
         var _this = this;
+        //#region properties
+        // constant values
+        this.defaultTopPosition = 250;
+        this.defaultLeftPosition = 0;
+        this.defaultLimbNumber = 5;
+        this.minSpeed = 40;
+        this.maxSpeed = 15;
+        this.speedDecrement = 1;
+        this.preysPerLevel = 5;
+        this.sandboxLeftBorderPosition = 0;
+        this.sandboxTopBorderPosition = 0;
+        this.sandboxRightBorderPosition = 500;
+        this.sandboxBottomBorderPosition = 500;
+        this.sandbox = $("#sandbox");
+        this.maxLevel = (this.minSpeed - this.maxSpeed) / this.speedDecrement;
+        // current values
+        this.speed = this.minSpeed;
+        this.isGameOver = false;
+        this.catchedPreys = 0;
+        this.level = 1;
+        this.moveLimbCurrentIndex = 0;
+        this.limbs = [];
         this.orientation = 1 /* Horizontal */;
         this.direction = 3 /* Right */;
-        this.defineOrientation = function (event) {
+        //#endregion
+        //#region keydownHandler
+        this.keydownHandler = function (event) {
             var direction;
 
             if (_this.isGameOver) {
@@ -55,6 +51,12 @@ var Snake = (function () {
                     break;
             }
 
+            _this.defineOrientationDirection(direction);
+            _this.moveLimb();
+        };
+        //#endregion
+        //#region defineOrientation
+        this.defineOrientationDirection = function (direction) {
             if (_this.orientation == 2 /* Vertical */ && (direction == 1 /* Left */ || direction == 3 /* Right */)) {
                 _this.orientation = 1 /* Horizontal */;
                 if (direction == 1 /* Left */) {
@@ -73,50 +75,55 @@ var Snake = (function () {
                     _this.direction = 4 /* Bottom */;
                 }
             }
-
-            _this.moveLimb();
         };
+        //#endregion
+        //#region createSnake
         this.createSnake = function () {
-            var currentLeft = _this.leftDefault;
+            var currentLeft = _this.defaultLeftPosition;
             var currentLimb;
             var limbTemplate;
 
-            for (var i = 0; i <= _this.limbNumber; i++) {
+            for (var i = 0; i <= _this.defaultLimbNumber; i++) {
                 currentLimb = new Limb();
                 currentLeft = currentLimb.width + currentLeft;
-                limbTemplate = _.template('<div id="current-limb" class="limb" style="top: { top }px; left: { left }px;"></div>', { top: _this.topDefault, left: currentLeft }).toString();
+                limbTemplate = _.template('<div id="limb" class="limb" style="top: { top }px; left: { left }px;"></div>', { top: _this.defaultTopPosition, left: currentLeft }).toString();
                 _this.sandbox.append(limbTemplate);
-
-                currentLimb.element = _this.sandbox.find("#current-limb");
+                currentLimb.element = _this.sandbox.find("#limb");
                 currentLimb.element.removeAttr("id");
-                currentLimb.isFirst = i === _this.limbNumber;
+                currentLimb.isFirst = i === _this.defaultLimbNumber;
                 _this.limbs.push(currentLimb);
             }
         };
+        //#endregion
+        //#region createLimb
         this.createLimb = function (coordinate) {
             var limbTemplate;
             var limb = new Limb();
 
             limb.left = coordinate.left;
             limb.top = coordinate.top;
-            limbTemplate = _.template('<div id="current-limb" class="limb" style="top: { top }px; left: { left }px;"></div>', { top: limb.top, left: limb.left }).toString();
+            limbTemplate = _.template('<div id="limb" class="limb" style="top: { top }px; left: { left }px;"></div>', { top: limb.top, left: limb.left }).toString();
             _this.sandbox.append(limbTemplate);
-            limb.element = _this.sandbox.find("#current-limb");
+            limb.element = _this.sandbox.find("#limb");
             limb.element.removeAttr("id");
             _this.limbs.push(limb);
         };
+        //#endregion
+        //#region createPrey
         this.createPrey = function () {
             var preyTemplate;
             var prey = new Prey();
 
             prey.left = Math.round(_.random(20, 470) / 10) * 10;
             prey.top = Math.round(_.random(20, 470) / 10) * 10;
-            preyTemplate = _.template('<div id="current-prey" class="prey" style="top: { top }px; left: { left }px;"></div>', { top: prey.top, left: prey.left }).toString();
+            preyTemplate = _.template('<div id="prey" class="prey" style="top: { top }px; left: { left }px;"></div>', { top: prey.top, left: prey.left }).toString();
             _this.sandbox.append(preyTemplate);
-            prey.element = _this.sandbox.find("#current-prey");
+            prey.element = _this.sandbox.find("#prey");
             prey.element.removeAttr("id");
             _this.prey = prey;
         };
+        //#endregion
+        //#region getLimbPosition
         this.getLimbPosition = function (firstLimb) {
             var left = 0;
             var top = 0;
@@ -148,15 +155,21 @@ var Snake = (function () {
                 top: top
             };
         };
+        //#endregion
+        //#region limbIsOutside
         this.limbIsOutside = function (moveLimbCoordinate) {
-            return moveLimbCoordinate.left < _this.sandboxLeftBorder || moveLimbCoordinate.left >= _this.sandboxRightBorder || moveLimbCoordinate.top < _this.sandboxTopBorder || moveLimbCoordinate.top >= _this.sandboxBottomBorder;
+            return moveLimbCoordinate.left < _this.sandboxLeftBorderPosition || moveLimbCoordinate.left >= _this.sandboxRightBorderPosition || moveLimbCoordinate.top < _this.sandboxTopBorderPosition || moveLimbCoordinate.top >= _this.sandboxBottomBorderPosition;
         };
-        this.LimbCatchPrey = function (moveLimbCoordinate) {
+        //#endregion
+        //#region limbCatchPrey
+        this.limbCatchPrey = function (moveLimbCoordinate) {
             return moveLimbCoordinate.left == _this.prey.left && moveLimbCoordinate.top == _this.prey.top;
         };
+        //#endregion
+        //#region buildLevel
         this.buildLevel = function () {
             _this.catchedPreys++;
-            if (_this.catchedPreys === 5) {
+            if (_this.catchedPreys === _this.preysPerLevel) {
                 _this.catchedPreys = 0;
                 _this.level++;
                 $('#value-level').text(_this.level);
@@ -172,33 +185,14 @@ var Snake = (function () {
                 _this.start();
             }
         };
-        this.isGameOver = false;
-        this.minSpeed = 40;
-        this.maxSpeed = 15;
-        this.speed = this.minSpeed;
-        this.speedDelta = this.minSpeed - this.maxSpeed;
-        this.speedDecrement = 1;
-        this.preysPerLevel = 5;
-        this.maxLevel = this.speedDelta / this.speedDecrement;
-        this.catchedPreys = 0;
-        this.level = 1;
-        $('#value-level').text(this.level);
-
-        this.snakeWidth = 10;
-        this.moveLimbCurrentIndex = 0;
-        this.limbNumber = 5;
-        this.topDefault = 250;
-        this.leftDefault = 0;
-        this.sandboxLeftBorder = 0;
-        this.sandboxTopBorder = 0;
-        this.sandboxRightBorder = 500;
-        this.sandboxBottomBorder = 500;
-        this.sandbox = $("#sandbox");
-        this.limbs = [];
         this.createSnake();
         this.createPrey();
-        $(document).keydown(this.defineOrientation);
+
+        $('#value-level').text(this.level);
+        $(document).keydown(this.keydownHandler);
     }
+    //#endregion
+    //#region moveLimb
     Snake.prototype.moveLimb = function () {
         var firstLimb;
         var moveLimb = this.limbs[this.moveLimbCurrentIndex];
@@ -213,10 +207,10 @@ var Snake = (function () {
         if (this.limbIsOutside(moveLimbCoordinate)) {
             this.stop();
             this.isGameOver = true;
-            return alert('Game Over ;-(');
+            return;
         }
 
-        if (this.LimbCatchPrey(moveLimbCoordinate)) {
+        if (this.limbCatchPrey(moveLimbCoordinate)) {
             this.prey.element.remove();
             this.createPrey();
             this.createLimb(moveLimbCoordinate);
@@ -235,6 +229,8 @@ var Snake = (function () {
         }
     };
 
+    //#endregion
+    //#region start
     Snake.prototype.start = function () {
         var _this = this;
         this.timerToken = setInterval(function () {
@@ -242,6 +238,8 @@ var Snake = (function () {
         }, this.speed);
     };
 
+    //#endregion
+    //#region stop
     Snake.prototype.stop = function () {
         clearTimeout(this.timerToken);
     };

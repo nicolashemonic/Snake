@@ -142,14 +142,34 @@
 
     //#endregion
 
+    //#region getPreyPosition
+
+    private getPreyPosition(): ICoordinate {
+        var temp: ICoordinate = { left: 0, top: 0 };
+        var position: ICoordinate = { left: 0, top: 0 };
+
+        while (!position.left && !position.top) {
+            temp.left = Math.round(_.random(20, 470) / 10) * 10;
+            temp.top = Math.round(_.random(20, 470) / 10) * 10;
+            if (!this.hasCollision(temp)) {
+                position.left = temp.left;
+                position.top = temp.top;
+            }
+        }
+        return position;
+    }
+
+    //#endregion
+
     //#region createPrey
 
     private createPrey = () => {
         var preyTemplate: string;
         var prey = new Prey();
+        var position = this.getPreyPosition();
 
-        prey.left = Math.round(_.random(20, 470) / 10) * 10;
-        prey.top = Math.round(_.random(20, 470) / 10) * 10;
+        prey.left = position.left;
+        prey.top = position.top;
         preyTemplate = _.template('<div id="prey" class="prey" style="top: { top }px; left: { left }px;"></div>',
             { top: prey.top, left: prey.left }).toString();
         this.sandbox.append(preyTemplate);
@@ -215,11 +235,11 @@
 
     //#endregion
 
-    //#region isSelfBite
+    //#region hasCollision
 
-    private isSelfBite(moveLimbCoordinate: ICoordinate) {
+    private hasCollision(coordinate: ICoordinate) {
         var bite = _.find(this.limbs, (limb: Limb) => {
-            return limb.top == moveLimbCoordinate.top && limb.left == moveLimbCoordinate.left;
+            return limb.top == coordinate.top && limb.left == coordinate.left;
         });
         return typeof bite != "undefined";
     }
@@ -239,7 +259,7 @@
 
         moveLimbCoordinate = this.getLimbPosition(firstLimb);
 
-        if (this.limbIsOutside(moveLimbCoordinate) || this.isSelfBite(moveLimbCoordinate)) {
+        if (this.limbIsOutside(moveLimbCoordinate) || this.hasCollision(moveLimbCoordinate)) {
             this.stop();
             this.isGameOver = true;
             return;

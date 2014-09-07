@@ -117,9 +117,10 @@
         this.createPrey = function () {
             var preyTemplate;
             var prey = new Prey();
+            var position = _this.getPreyPosition();
 
-            prey.left = Math.round(_.random(20, 470) / 10) * 10;
-            prey.top = Math.round(_.random(20, 470) / 10) * 10;
+            prey.left = position.left;
+            prey.top = position.top;
             preyTemplate = _.template('<div id="prey" class="prey" style="top: { top }px; left: { left }px;"></div>', { top: prey.top, left: prey.left }).toString();
             _this.sandbox.append(preyTemplate);
             prey.element = _this.sandbox.find("#prey");
@@ -196,10 +197,27 @@
         $(document).keydown(this.keydownHandler);
     }
     //#endregion
-    //#region isSelfBite
-    Snake.prototype.isSelfBite = function (moveLimbCoordinate) {
+    //#region getPreyPosition
+    Snake.prototype.getPreyPosition = function () {
+        var temp = { left: 0, top: 0 };
+        var position = { left: 0, top: 0 };
+
+        while (!position.left && !position.top) {
+            temp.left = Math.round(_.random(20, 470) / 10) * 10;
+            temp.top = Math.round(_.random(20, 470) / 10) * 10;
+            if (!this.hasCollision(temp)) {
+                position.left = temp.left;
+                position.top = temp.top;
+            }
+        }
+        return position;
+    };
+
+    //#endregion
+    //#region hasCollision
+    Snake.prototype.hasCollision = function (coordinate) {
         var bite = _.find(this.limbs, function (limb) {
-            return limb.top == moveLimbCoordinate.top && limb.left == moveLimbCoordinate.left;
+            return limb.top == coordinate.top && limb.left == coordinate.left;
         });
         return typeof bite != "undefined";
     };
@@ -217,7 +235,7 @@
 
         moveLimbCoordinate = this.getLimbPosition(firstLimb);
 
-        if (this.limbIsOutside(moveLimbCoordinate) || this.isSelfBite(moveLimbCoordinate)) {
+        if (this.limbIsOutside(moveLimbCoordinate) || this.hasCollision(moveLimbCoordinate)) {
             this.stop();
             this.isGameOver = true;
             return;

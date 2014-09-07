@@ -188,23 +188,23 @@
 
         if (this.orientation == Orientation.Horizontal) {
             if (this.direction == Direction.Left) {
-                left = firstLimb.element.position().left - firstLimb.width;
-                top = firstLimb.element.position().top;
+                left = firstLimb.left - firstLimb.width;
+                top = firstLimb.top;
             }
             if (this.direction == Direction.Right) {
-                left = firstLimb.element.position().left + firstLimb.width;
-                top = firstLimb.element.position().top;
+                left = firstLimb.left + firstLimb.width;
+                top = firstLimb.top;
             }
         }
 
         if (this.orientation == Orientation.Vertical) {
             if (this.direction == Direction.Top) {
-                left = firstLimb.element.position().left;
-                top = firstLimb.element.position().top - firstLimb.width;
+                left = firstLimb.left;
+                top = firstLimb.top - firstLimb.width;
             }
             if (this.direction == Direction.Bottom) {
-                left = firstLimb.element.position().left;
-                top = firstLimb.element.position().top + firstLimb.width;
+                left = firstLimb.left;
+                top = firstLimb.top + firstLimb.width;
             }
         }
 

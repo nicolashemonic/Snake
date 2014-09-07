@@ -135,23 +135,23 @@
 
             if (_this.orientation == 1 /* Horizontal */) {
                 if (_this.direction == 1 /* Left */) {
-                    left = firstLimb.element.position().left - firstLimb.width;
-                    top = firstLimb.element.position().top;
+                    left = firstLimb.left - firstLimb.width;
+                    top = firstLimb.top;
                 }
                 if (_this.direction == 3 /* Right */) {
-                    left = firstLimb.element.position().left + firstLimb.width;
-                    top = firstLimb.element.position().top;
+                    left = firstLimb.left + firstLimb.width;
+                    top = firstLimb.top;
                 }
             }
 
             if (_this.orientation == 2 /* Vertical */) {
                 if (_this.direction == 2 /* Top */) {
-                    left = firstLimb.element.position().left;
-                    top = firstLimb.element.position().top - firstLimb.width;
+                    left = firstLimb.left;
+                    top = firstLimb.top - firstLimb.width;
                 }
                 if (_this.direction == 4 /* Bottom */) {
-                    left = firstLimb.element.position().left;
-                    top = firstLimb.element.position().top + firstLimb.width;
+                    left = firstLimb.left;
+                    top = firstLimb.top + firstLimb.width;
                 }
             }
 

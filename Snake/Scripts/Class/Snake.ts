@@ -5,7 +5,7 @@
     // constant values
     private defaultTopPosition: number = 250;
     private defaultLeftPosition: number = 0;
-    private defaultLimbNumber: number = 25;
+    private defaultLimbNumber: number = 5;
     private minSpeed: number = 40;
     private maxSpeed: number = 15;
     private speedDecrement: number = 1;
@@ -28,7 +28,7 @@
     private orientation: Orientation = Orientation.Horizontal;
     private direction: Direction = Direction.Right;
     private prey: Prey;
-    private isMoveProgress: boolean = false;
+    private previousKeydown: number = 0;
 
     //#endregion
 
@@ -49,11 +49,10 @@
     private keydownHandler = (event: JQueryEventObject): void => {
         var direction: Direction;
 
-        if (this.isMoveProgress || this.isGameOver) {
+        if (this.previousKeydown == event.which || this.isGameOver) {
             return;
         }
-
-        this.isMoveProgress = true;
+        this.previousKeydown = event.which;
 
         switch (event.which) {
             case 37:
@@ -71,6 +70,7 @@
         }
 
         this.defineOrientationDirection(direction);
+        this.moveLimb();
     }
 
     //#endregion
@@ -283,7 +283,6 @@
         } else {
             this.moveLimbCurrentIndex++;
         }
-        this.isMoveProgress = false;
     }
 
     //#endregion

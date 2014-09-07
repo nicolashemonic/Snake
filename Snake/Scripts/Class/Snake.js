@@ -7,7 +7,7 @@
         // constant values
         this.defaultTopPosition = 250;
         this.defaultLeftPosition = 0;
-        this.defaultLimbNumber = 25;
+        this.defaultLimbNumber = 5;
         this.minSpeed = 40;
         this.maxSpeed = 15;
         this.speedDecrement = 1;
@@ -27,17 +27,16 @@
         this.limbs = [];
         this.orientation = 1 /* Horizontal */;
         this.direction = 3 /* Right */;
-        this.isMoveProgress = false;
+        this.previousKeydown = 0;
         //#endregion
         //#region keydownHandler
         this.keydownHandler = function (event) {
             var direction;
 
-            if (_this.isMoveProgress || _this.isGameOver) {
+            if (_this.previousKeydown == event.which || _this.isGameOver) {
                 return;
             }
-
-            _this.isMoveProgress = true;
+            _this.previousKeydown = event.which;
 
             switch (event.which) {
                 case 37:
@@ -55,6 +54,7 @@
             }
 
             _this.defineOrientationDirection(direction);
+            _this.moveLimb();
         };
         //#endregion
         //#region defineOrientation
@@ -259,7 +259,6 @@
         } else {
             this.moveLimbCurrentIndex++;
         }
-        this.isMoveProgress = false;
     };
 
     //#endregion

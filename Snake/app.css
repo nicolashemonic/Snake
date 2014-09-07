@@ -23,6 +23,10 @@
     position: absolute;
 }
 
+.limb.is-first {
+    background: #0D9E7B;
+}
+
 .prey {
     width: 10px;
     height: 10px;

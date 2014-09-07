@@ -5,7 +5,7 @@
     // constant values
     private defaultTopPosition: number = 250;
     private defaultLeftPosition: number = 0;
-    private defaultLimbNumber: number = 5;
+    private defaultLimbNumber: number = 40;
     private minSpeed: number = 40;
     private maxSpeed: number = 15;
     private speedDecrement: number = 1;
@@ -277,6 +277,9 @@
         moveLimb.top = moveLimbCoordinate.top;
         firstLimb.isFirst = false;
         moveLimb.isFirst = true;
+
+        firstLimb.element.removeClass("is-first");
+        moveLimb.element.addClass("is-first");
 
         if (this.moveLimbCurrentIndex >= this.limbs.length - 1) {
             this.moveLimbCurrentIndex = 0;

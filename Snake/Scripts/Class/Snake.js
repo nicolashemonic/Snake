@@ -7,7 +7,7 @@
         // constant values
         this.defaultTopPosition = 250;
         this.defaultLeftPosition = 0;
-        this.defaultLimbNumber = 5;
+        this.defaultLimbNumber = 25;
         this.minSpeed = 40;
         this.maxSpeed = 15;
         this.speedDecrement = 1;
@@ -27,14 +27,17 @@
         this.limbs = [];
         this.orientation = 1 /* Horizontal */;
         this.direction = 3 /* Right */;
+        this.isMoveProgress = false;
         //#endregion
         //#region keydownHandler
         this.keydownHandler = function (event) {
             var direction;
 
-            if (_this.isGameOver) {
+            if (_this.isMoveProgress || _this.isGameOver) {
                 return;
             }
+
+            _this.isMoveProgress = true;
 
             switch (event.which) {
                 case 37:
@@ -52,7 +55,6 @@
             }
 
             _this.defineOrientationDirection(direction);
-            _this.moveLimb();
         };
         //#endregion
         //#region defineOrientation
@@ -91,6 +93,8 @@
                 currentLimb.element = _this.sandbox.find("#limb");
                 currentLimb.element.removeAttr("id");
                 currentLimb.isFirst = i === _this.defaultLimbNumber;
+                currentLimb.left = currentLeft;
+                currentLimb.top = _this.defaultTopPosition;
                 _this.limbs.push(currentLimb);
             }
         };
@@ -192,6 +196,15 @@
         $(document).keydown(this.keydownHandler);
     }
     //#endregion
+    //#region isSelfBite
+    Snake.prototype.isSelfBite = function (moveLimbCoordinate) {
+        var bite = _.find(this.limbs, function (limb) {
+            return limb.top == moveLimbCoordinate.top && limb.left == moveLimbCoordinate.left;
+        });
+        return typeof bite != "undefined";
+    };
+
+    //#endregion
     //#region moveLimb
     Snake.prototype.moveLimb = function () {
         var firstLimb;
@@ -204,7 +217,7 @@
 
         moveLimbCoordinate = this.getLimbPosition(firstLimb);
 
-        if (this.limbIsOutside(moveLimbCoordinate)) {
+        if (this.limbIsOutside(moveLimbCoordinate) || this.isSelfBite(moveLimbCoordinate)) {
             this.stop();
             this.isGameOver = true;
             return;
@@ -218,7 +231,8 @@
         }
 
         moveLimb.element.css({ left: moveLimbCoordinate.left, top: moveLimbCoordinate.top });
-
+        moveLimb.left = moveLimbCoordinate.left;
+        moveLimb.top = moveLimbCoordinate.top;
         firstLimb.isFirst = false;
         moveLimb.isFirst = true;
 
@@ -227,6 +241,7 @@
         } else {
             this.moveLimbCurrentIndex++;
         }
+        this.isMoveProgress = false;
     };
 
     //#endregion

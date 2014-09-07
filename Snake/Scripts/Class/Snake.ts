@@ -5,7 +5,7 @@
     // constant values
     private defaultTopPosition: number = 250;
     private defaultLeftPosition: number = 0;
-    private defaultLimbNumber: number = 5;
+    private defaultLimbNumber: number = 25;
     private minSpeed: number = 40;
     private maxSpeed: number = 15;
     private speedDecrement: number = 1;
@@ -28,6 +28,7 @@
     private orientation: Orientation = Orientation.Horizontal;
     private direction: Direction = Direction.Right;
     private prey: Prey;
+    private isMoveProgress: boolean = false;
 
     //#endregion
 
@@ -48,9 +49,11 @@
     private keydownHandler = (event: JQueryEventObject): void => {
         var direction: Direction;
 
-        if (this.isGameOver) {
+        if (this.isMoveProgress || this.isGameOver) {
             return;
         }
+
+        this.isMoveProgress = true;
 
         switch (event.which) {
             case 37:
@@ -68,7 +71,6 @@
         }
 
         this.defineOrientationDirection(direction);
-        this.moveLimb();
     }
 
     //#endregion
@@ -114,6 +116,8 @@
             currentLimb.element = this.sandbox.find("#limb");
             currentLimb.element.removeAttr("id");
             currentLimb.isFirst = i === this.defaultLimbNumber;
+            currentLimb.left = currentLeft;
+            currentLimb.top = this.defaultTopPosition;
             this.limbs.push(currentLimb);
         }
     }
@@ -211,6 +215,17 @@
 
     //#endregion
 
+    //#region isSelfBite
+
+    private isSelfBite(moveLimbCoordinate: ICoordinate) {
+        var bite = _.find(this.limbs, (limb: Limb) => {
+            return limb.top == moveLimbCoordinate.top && limb.left == moveLimbCoordinate.left;
+        });
+        return typeof bite != "undefined";
+    }
+
+    //#endregion
+
     //#region moveLimb
 
     private moveLimb() {        
@@ -224,7 +239,7 @@
 
         moveLimbCoordinate = this.getLimbPosition(firstLimb);
 
-        if (this.limbIsOutside(moveLimbCoordinate)) {
+        if (this.limbIsOutside(moveLimbCoordinate) || this.isSelfBite(moveLimbCoordinate)) {
             this.stop();
             this.isGameOver = true;
             return;
@@ -238,7 +253,8 @@
         }
 
         moveLimb.element.css({ left: moveLimbCoordinate.left, top: moveLimbCoordinate.top });
-
+        moveLimb.left = moveLimbCoordinate.left;
+        moveLimb.top = moveLimbCoordinate.top;
         firstLimb.isFirst = false;
         moveLimb.isFirst = true;
 
@@ -247,6 +263,7 @@
         } else {
             this.moveLimbCurrentIndex++;
         }
+        this.isMoveProgress = false;
     }
 
     //#endregion

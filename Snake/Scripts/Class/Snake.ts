@@ -5,9 +5,9 @@
     // constant values
     private defaultTopPosition: number = 250;
     private defaultLeftPosition: number = 0;
-    private defaultLimbNumber: number = 40;
-    private minSpeed: number = 40;
-    private maxSpeed: number = 15;
+    private defaultLimbNumber: number = 5;
+    private minSpeed: number = 60;
+    private maxSpeed: number = 30;
     private speedDecrement: number = 1;
     private preysPerLevel: number = 5;
     private sandboxLeftBorderPosition: number = 0;

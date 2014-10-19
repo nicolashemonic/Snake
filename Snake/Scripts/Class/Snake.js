@@ -7,9 +7,9 @@
         // constant values
         this.defaultTopPosition = 250;
         this.defaultLeftPosition = 0;
-        this.defaultLimbNumber = 40;
-        this.minSpeed = 40;
-        this.maxSpeed = 15;
+        this.defaultLimbNumber = 5;
+        this.minSpeed = 60;
+        this.maxSpeed = 30;
         this.speedDecrement = 1;
         this.preysPerLevel = 5;
         this.sandboxLeftBorderPosition = 0;
